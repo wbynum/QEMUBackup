@@ -1,0 +1,352 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<!--
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>. Model.Message</p>
+</div>
+    -->
+
+<!-- <form action="/VM/List" method="post"> -->
+<form id="MainSelectionForm">
+    <h3>Connection Details:</h3><br />
+    <div class="ConnectionDetails-border-solid">
+        HOST: <input type="text" name="Host" value="@Model.Host" /><br />
+        USERNAME: <input type="text" name="Username" value="@Model.Username" /><br />
+        PASSWORD: <input type="text" name="Password" value="@Model.Password" /><br />
+        BACKUP PATH: <input type="text" name="BackupPath" value="@Model.BackupPath" /><br />
+    </div>
+    <br /><h3>Select:</h3><br />
+    <div class="row">
+        <div class="MainSelection-border-solid">
+            @foreach (var selection in Model.MainSelectionValues)
+            {
+                <input type="radio" asp-for="MainSelection" value="@selection" /> @selection<br />
+            }
+
+            VM Name: <input type="text" name="VMName" id="VMName" /><br />
+            <button type="button" id="MainSelectionButton">Submit</button>
+        </div>
+        
+        <div class="MainSelection-border-solid" id="Details">
+            VM Title: <input type="text" name="VMTitle" id="VMTitle" /><br />
+            VM Description: <textarea rows="6" style="width:100%; white-space: pre; overflow-wrap: normal; overflow-x: scroll;" name="VMDesc" id="VMDesc"></textarea>
+        </div>
+                
+        <div class="MainSelection-border-solid" style="display: none;" id="VMBackupListBlock">
+            <h3>Backups:</h3>
+            <div style="display: none;" id="VMBackupListRadio">
+            </div>
+            <div style="display: none;" id="VMBackupListRadioButtons">
+                <br />
+                <button type="button" id="GetBackupDetailsButton">Get Backup Details</button>
+                <button type="button" id="RestoreBackupButton">Restore Backup</button>
+            </div>
+            <div style="display: none;" id="VMBackupListNotFound">
+                <h3>No backups found!</h3>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <br /><h3>Output:</h3><br />
+    <div class="MainOutput-border-solid" id="MainOutput"></div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">       
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+         }
+
+
+        $(document).ready(function () {
+            $("input:radio[name=MainSelection]:not(:disabled):first").attr('checked', true);
+
+            $("#MainSelectionButton").click(function () {
+                $("#MainSelectionButton").prop('disabled', true).css('opacity', 0.5);
+
+                var data = $("#MainSelectionForm").serialize();
+
+                var selection = $("#MainSelection:checked").val();
+
+                if (selection.localeCompare("List Virtual Machines") == 0) {
+                    $("#VMDesc").val("");
+                    $("#VMTitle").val("");
+                    $("#MainOutput").html("");
+
+                    $("#Details").show();
+                    $("#VMBackupListBlock").hide();
+
+                    $.post("/VM/List",
+                        data,
+                        function (data, status) {
+                            $("#MainOutput").html("<pre class=\"MainOutput\">" + data + "</pre>");
+                            $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                        }
+                    );
+                } else if (selection.localeCompare("Get Virtual Machine Details") == 0) {
+                    $("#VMDesc").val("");
+                    $("#VMTitle").val("");
+                    $("#MainOutput").html("");
+
+                    var VMNameLength = $("#VMName").val().length;
+                    if (VMNameLength < 1) {
+                        alert('Error: No VM Name entered.');
+                        $('#MainSelectionButton').prop('disabled',false).css('opacity',1);
+                        return;
+                    }
+
+                    $("#Details").show();
+                    $("#VMBackupListBlock").hide();
+
+                    $.post("/VM/DetailsGet",
+                        data,
+                        function (data, status) {
+                            data = JSON.parse(data);
+
+                            if (data.Error != null && data.Error == true) {
+                                $("#MainOutput").html("<pre class=\"MainOutput\">" + data.ErrorMsg + "</pre>");
+                            } else {
+                                $("#VMDesc").val(data.vmDesc);
+                                $("#VMTitle").val(data.vmTitle);
+                                $("#MainOutput").html("<pre class=\"MainOutput\">" + data.vmInfo + "</pre>");
+                            }
+
+                            $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                        }
+                    );
+                } else if (selection.localeCompare("Get Virtual Machine XML") == 0) {
+                    $("#VMDesc").val("");
+                    $("#VMTitle").val("");
+                    $("#MainOutput").html("");
+
+                    var VMNameLength = $("#VMName").val().length;
+                    if (VMNameLength < 1) {
+                        alert('Error: No VM Name entered.');
+                        $('#MainSelectionButton').prop('disabled',false).css('opacity',1);
+                        return;
+                    }
+
+                    $("#Details").show();
+                    $("#VMBackupListBlock").hide();
+
+                    $.post("/VM/DetailsXML",
+                        data,
+                        function (data, status) {
+                            data = JSON.parse(data);
+
+                            if (data.Error != null && data.Error == true) {
+                                $("#MainOutput").html("<pre class=\"MainOutput\">" + data.ErrorMsg + "</pre>");
+                            } else {
+                                $("#MainOutput").html("<pre class=\"MainOutput\">" + escapeHtml(data.vmXML) + "</pre>");
+                            }
+
+                            $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                        }
+                    );
+                }  else if (selection.localeCompare("Set Virtual Machine Details") == 0) {
+                    $("#MainOutput").html("");
+
+                    var VMNameLength = $("#VMName").val().length;
+                    if (VMNameLength < 1) {
+                        alert('Error: No VM Name entered.');
+                        $('#MainSelectionButton').prop('disabled',false).css('opacity',1);
+                        return;
+                    }
+
+                    $("#Details").show();
+                    $("#VMBackupListBlock").hide();
+
+                    $.post("/VM/DetailsSet",
+                        data,
+                        function (data, status) {
+                            data = JSON.parse(data);
+
+                            if (data.Error != null && data.Error == true) {
+                                $("#MainOutput").html("<pre class=\"MainOutput\">" + data.ErrorMsg + "</pre>");
+                            } else {
+                                $("#MainOutput").html("<pre class=\"MainOutput\">" + data.vmTitleOutput + "\n" + data.vmDescOutput + "</pre>");
+                            }
+
+                            $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                        }
+                    );
+                } else if (selection.localeCompare("Backup Virtual Machine") == 0) {
+                    $("#MainOutput").html("");
+
+                    var VMNameLength = $("#VMName").val().length;
+                    if (VMNameLength < 1) {
+                        alert('Error: No VM Name entered.');
+                        $('#MainSelectionButton').prop('disabled',false).css('opacity',1);
+                        return;
+                    }
+
+                    $("#Details").show();
+                    $("#VMBackupListBlock").hide();
+
+                    $.post("/VM/BackupCreate",
+                        data,
+                        function (data, status) {
+                            data = JSON.parse(data);
+
+                            if (data.Error != null && data.Error == true) {
+                                $("#MainOutput").html("<pre class=\"MainOutput\">" + data.ErrorMsg + "</pre>");
+                            } else {
+                                $("#MainOutput").html("<pre class=\"MainOutput\">" + data.backupOutput + "</pre>");
+                            }
+
+                            $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                        }
+                    );
+                } else if (selection.localeCompare("List Virtual Machine Backups") == 0) {
+                    $("#MainOutput").html("");
+
+                    var VMNameLength = $("#VMName").val().length;
+                    if (VMNameLength < 1) {
+                        alert('Error: No VM Name entered.');
+                        $('#MainSelectionButton').prop('disabled',false).css('opacity',1);
+                        return;
+                    }
+
+                    $("#Details").hide();
+                    $("#VMBackupListBlock").hide();
+                    $("#VMBackupListRadio").hide();
+                    $("#VMBackupListRadio").html("");
+                    $("#VMBackupListRadioButtons").hide();
+                    $("#VMBackupListNotFound").hide();
+
+                    $.post("/VM/BackupList",
+                        data,
+                        function (data, status) {
+                            data = JSON.parse(data);
+
+                            var backupsFound = false;
+                            data.forEach(function(backup) {
+                                console.log(backup.Date);
+                                console.log(backup.DatePretty + " UTC");
+
+                                var radioBtn = $('<input type="radio" value="' + backup.Date + '" id="BackupSelection" name="BackupSelection" /> ' + backup.DatePretty + ' UTC<br \>');
+                                radioBtn.appendTo('#VMBackupListRadio');
+
+                                backupsFound = true;
+                            });
+
+                            $("#VMBackupListBlock").show();
+
+                            if (backupsFound == true) {
+                                $("#VMBackupListRadio").show();
+                                $("#VMBackupListRadioButtons").show();
+                            }
+                            else {
+                                $("#VMBackupListNotFound").show();
+                            }
+
+                            $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                        }
+                    );
+                }
+            }); 
+
+
+
+
+            $("#GetBackupDetailsButton").click(function () {
+                $("#MainSelectionButton").prop('disabled',true).css('opacity',1);
+                $("#GetBackupDetailsButton").prop('disabled',true).css('opacity',1);                
+                $("#RestoreBackupButton").prop('disabled',true).css('opacity',1);
+                $("#MainOutput").html("");
+
+                var VMNameLength = $("#VMName").val().length;
+                if (VMNameLength < 1) {
+                    alert('Error: No VM Name entered.');
+                    $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                    $("#GetBackupDetailsButton").prop('disabled',false).css('opacity',1);
+                    $("#RestoreBackupButton").prop('disabled',false).css('opacity',1);
+                    return;
+                }
+
+                if (typeof $("#BackupSelection:checked").val() !== 'undefined') {
+                    var data = $("#MainSelectionForm").serialize();
+
+                    var selection = $("#BackupSelection:checked").val();
+
+                    $("#MainOutput").html("");
+
+                    $.post("/VM/BackupDetails",
+                        data,
+                        function (data, status) {
+                            $("#MainOutput").html("<pre class=\"MainOutput\">" + escapeHtml(data) + "</pre>");
+                            $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                            $("#GetBackupDetailsButton").prop('disabled',false).css('opacity',1);
+                            $("#RestoreBackupButton").prop('disabled',false).css('opacity',1);
+                        }
+                    );
+                }
+                else {
+                    alert('Error: No backup selected.');
+                    $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                    $("#GetBackupDetailsButton").prop('disabled',false).css('opacity',1);
+                    $("#RestoreBackupButton").prop('disabled',false).css('opacity',1);
+                }
+            }); 
+
+
+
+            $("#RestoreBackupButton").click(function () {
+                $("#MainSelectionButton").prop('disabled',true).css('opacity',1);
+                $("#GetBackupDetailsButton").prop('disabled',true).css('opacity',1);                
+                $("#RestoreBackupButton").prop('disabled',true).css('opacity',1);
+                $("#MainOutput").html("");
+
+                var VMNameLength = $("#VMName").val().length;
+                if (VMNameLength < 1) {
+                    alert('Error: No VM Name entered.');
+                    $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                    $("#GetBackupDetailsButton").prop('disabled',false).css('opacity',1);
+                    $("#RestoreBackupButton").prop('disabled',false).css('opacity',1);
+                    return;
+                }
+
+                if (typeof $("#BackupSelection:checked").val() !== 'undefined') {
+                    var data = $("#MainSelectionForm").serialize();
+
+                    var selection = $("#BackupSelection:checked").val();
+
+                    $("#MainOutput").html("");
+
+                    $.post("/VM/BackupRestore",
+                        data,
+                        function (data, status) {
+                            data = JSON.parse(data);
+                            $("#MainOutput").html("<pre class=\"MainOutput\">" + data.restoreOutput + "</pre>");
+                            $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                            $("#GetBackupDetailsButton").prop('disabled',false).css('opacity',1);
+                            $("#RestoreBackupButton").prop('disabled',false).css('opacity',1);
+                        }
+                    );
+                }
+                else {
+                    alert('Error: No backup selected.');
+                    $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                    $("#GetBackupDetailsButton").prop('disabled',false).css('opacity',1);
+                    $("#RestoreBackupButton").prop('disabled',false).css('opacity',1);
+                }
+            }); 
+
+
+
+        }); 
+    </script>
+}
