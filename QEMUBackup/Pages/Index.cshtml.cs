@@ -29,10 +29,14 @@ namespace QEMUBackup.Pages
 
         public void OnGet()
         {
-            Host = "";
-            Username = "";
+            string host = System.Environment.GetEnvironmentVariable("QEMUBackupHost", EnvironmentVariableTarget.Process);
+            string username = System.Environment.GetEnvironmentVariable("QEMUBackupUsername", EnvironmentVariableTarget.Process);
+            string backupPath = System.Environment.GetEnvironmentVariable("QEMUBackupBackupPath", EnvironmentVariableTarget.Process);
+
+            Host = host;
+            Username = username;
             Password = "";
-            BackupPath = "";
+            BackupPath = backupPath;
         }
     }
 }
