@@ -35,3 +35,8 @@ docker run -d \
     -e "QEMUBackupBackupPath=/mnt/user/vmbackups" \
     wbynum/qemubackup
 ```
+
+### Notes
+
+- All logic to update the VM title/description, retrieve location of VM disks for backup, update/create a VM from backup, etc is done with the appropriate virsh commands and QEMU VM XML inspection. No hard coded paths are used.
+- App has been tested on a unRAID system. Should work on any Linux system running QEMU (untested).
