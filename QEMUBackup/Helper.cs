@@ -10,10 +10,17 @@ namespace QEMUBackup
     public class Helper
     {
         StringBuilder mySB;
+        bool appendToSB = true;
 
         public Helper(StringBuilder sb)
         {
             mySB = sb;
+        }
+
+        public Helper(StringBuilder sb, bool useSB)
+        {
+            mySB = sb;
+            appendToSB = useSB;
         }
 
         public XmlDocument GetVMXML(SSH ssh, string vmName)
@@ -137,7 +144,8 @@ namespace QEMUBackup
 
             dirPath = dirPath.Replace(" ", "\\ ");
             string sshCommand = "ls -d " + dirPath + "*";
-            mySB.AppendLine(sshCommand);
+            if (appendToSB == true)
+                mySB.AppendLine(sshCommand);
             string sshOutput = ssh.ExecuteSSHCommand(sshCommand);
 
             if (sshOutput.Length > 0)

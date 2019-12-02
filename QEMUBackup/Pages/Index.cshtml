@@ -95,7 +95,11 @@
                             $("#MainOutput").html("<pre class=\"MainOutput\">" + data + "</pre>");
                             $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
                         }
-                    );
+                    )
+                    .fail(function(response) {
+                        alert('Error: ' + response.responseText);                        
+                        $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                    });
                 } else if (selection.localeCompare("Get Virtual Machine Details") == 0) {
                     $("#VMDesc").val("");
                     $("#VMTitle").val("");
@@ -126,7 +130,11 @@
 
                             $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
                         }
-                    );
+                    )
+                    .fail(function(response) {
+                        alert('Error: ' + response.responseText);
+                        $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                    });
                 } else if (selection.localeCompare("Get Virtual Machine XML") == 0) {
                     $("#VMDesc").val("");
                     $("#VMTitle").val("");
@@ -155,7 +163,11 @@
 
                             $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
                         }
-                    );
+                    )
+                    .fail(function(response) {
+                        alert('Error: ' + response.responseText);
+                        $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                    });
                 }  else if (selection.localeCompare("Set Virtual Machine Details") == 0) {
                     $("#MainOutput").html("");
 
@@ -182,7 +194,11 @@
 
                             $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
                         }
-                    );
+                    )
+                    .fail(function(response) {
+                        alert('Error: ' + response.responseText);
+                        $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                    });
                 } else if (selection.localeCompare("Backup Virtual Machine") == 0) {
                     $("#MainOutput").html("");
 
@@ -209,7 +225,30 @@
 
                             $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
                         }
-                    );
+                    )
+                    .fail(function(response) {
+                        alert('Error: ' + response.responseText);
+                        $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                    });
+                } else if (selection.localeCompare("List Virtual Machines With Backups") == 0) {
+                    $("#VMDesc").val("");
+                    $("#VMTitle").val("");
+                    $("#MainOutput").html("");
+
+                    $("#Details").show();
+                    $("#VMBackupListBlock").hide();
+
+                    $.post("/VM/BackupVMList",
+                        data,
+                        function (data, status) {
+                            $("#MainOutput").html("<pre class=\"MainOutput\">" + data + "</pre>");
+                            $("#MainSelectionButton").prop('disabled', false).css('opacity', 1);
+                        }
+                    )
+                    .fail(function (response) {
+                        alert('Error: ' + response.responseText);
+                        $("#MainSelectionButton").prop('disabled', false).css('opacity', 1);
+                    });
                 } else if (selection.localeCompare("List Virtual Machine Backups") == 0) {
                     $("#MainOutput").html("");
 
@@ -255,7 +294,11 @@
 
                             $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
                         }
-                    );
+                    )
+                    .fail(function(response) {
+                        alert('Error: ' + response.responseText);
+                        $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                    });
                 }
             }); 
 
@@ -292,7 +335,13 @@
                             $("#GetBackupDetailsButton").prop('disabled',false).css('opacity',1);
                             $("#RestoreBackupButton").prop('disabled',false).css('opacity',1);
                         }
-                    );
+                    )
+                    .fail(function(response) {
+                        alert('Error: ' + response.responseText);
+                        $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                        $("#GetBackupDetailsButton").prop('disabled',false).css('opacity',1);
+                        $("#RestoreBackupButton").prop('disabled',false).css('opacity',1);
+                    });
                 }
                 else {
                     alert('Error: No backup selected.');
@@ -335,7 +384,13 @@
                             $("#GetBackupDetailsButton").prop('disabled',false).css('opacity',1);
                             $("#RestoreBackupButton").prop('disabled',false).css('opacity',1);
                         }
-                    );
+                    )
+                    .fail(function(response) {
+                        alert('Error: ' + response.responseText);
+                        $("#MainSelectionButton").prop('disabled',false).css('opacity',1);
+                        $("#GetBackupDetailsButton").prop('disabled',false).css('opacity',1);
+                        $("#RestoreBackupButton").prop('disabled',false).css('opacity',1);
+                    });
                 }
                 else {
                     alert('Error: No backup selected.');
